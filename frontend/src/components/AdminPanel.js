@@ -303,8 +303,8 @@ function CreateRuleModal({ onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    rule_type: 'KEYWORD',
-    region: 'GLOBAL',
+    rule_type: 'keyword',
+    region: 'global',
     patterns: '',
     threshold: 0.7,
     priority: 0,
@@ -315,10 +315,14 @@ function CreateRuleModal({ onClose, onSubmit }) {
     e.preventDefault();
 
     // Convert patterns from comma-separated string to array
-    const patternsArray = formData.patterns
-      .split(',')
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
+    // For PII, TOXICITY, FINANCIAL, MEDICAL - patterns are not used (hardcoded in backend)
+    let patternsArray = null;
+    if (formData.rule_type === 'keyword' || formData.rule_type === 'regex') {
+      patternsArray = formData.patterns
+        .split(',')
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+    }
 
     const ruleData = {
       ...formData,
@@ -382,12 +386,12 @@ function CreateRuleModal({ onClose, onSubmit }) {
                 onChange={handleChange}
                 required
               >
-                <option value="KEYWORD">Keyword</option>
-                <option value="REGEX">Regex Pattern</option>
-                <option value="PII">PII Detection</option>
-                <option value="TOXICITY">Toxicity (includes hate speech)</option>
-                <option value="FINANCIAL">Financial (hardcoded terms)</option>
-                <option value="MEDICAL">Medical/HIPAA (hardcoded terms)</option>
+                <option value="keyword">Keyword</option>
+                <option value="regex">Regex Pattern</option>
+                <option value="pii">PII Detection</option>
+                <option value="toxicity">Toxicity (includes hate speech)</option>
+                <option value="financial">Financial (hardcoded terms)</option>
+                <option value="medical">Medical/HIPAA (hardcoded terms)</option>
               </select>
             </div>
 
@@ -400,16 +404,16 @@ function CreateRuleModal({ onClose, onSubmit }) {
                 onChange={handleChange}
                 required
               >
-                <option value="GLOBAL">Global</option>
-                <option value="US">US (HIPAA)</option>
-                <option value="EU">EU (GDPR)</option>
-                <option value="UK">UK</option>
-                <option value="APAC">APAC</option>
+                <option value="global">Global</option>
+                <option value="us">US (HIPAA)</option>
+                <option value="eu">EU (GDPR)</option>
+                <option value="uk">UK</option>
+                <option value="apac">APAC</option>
               </select>
             </div>
           </div>
 
-          {formData.rule_type === 'REGEX' && (
+          {formData.rule_type === 'regex' && (
             <div className="form-group">
               <label htmlFor="patterns">Regex Patterns (comma-separated)</label>
               <textarea
@@ -434,7 +438,7 @@ function CreateRuleModal({ onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'KEYWORD' && (
+          {formData.rule_type === 'keyword' && (
             <div className="form-group">
               <label htmlFor="patterns">Keywords (comma-separated)</label>
               <input
@@ -451,7 +455,7 @@ function CreateRuleModal({ onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'PII' && (
+          {formData.rule_type === 'pii' && (
             <div className="form-group">
               <div className="info-box">
                 <strong>PII Detection:</strong> Uses built-in patterns to detect:
@@ -466,7 +470,7 @@ function CreateRuleModal({ onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'FINANCIAL' && (
+          {formData.rule_type === 'financial' && (
             <div className="form-group">
               <div className="info-box">
                 <strong>Financial Terms Detection:</strong> Uses built-in keywords to detect:
@@ -481,7 +485,7 @@ function CreateRuleModal({ onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'MEDICAL' && (
+          {formData.rule_type === 'medical' && (
             <div className="form-group">
               <div className="info-box">
                 <strong>Medical/HIPAA Detection:</strong> Uses built-in keywords to detect:
@@ -505,7 +509,7 @@ function CreateRuleModal({ onClose, onSubmit }) {
           )}
 
           <div className="form-row">
-            {formData.rule_type === 'TOXICITY' && (
+            {formData.rule_type === 'toxicity' && (
               <div className="form-group">
                 <label htmlFor="threshold">Threshold (0-1)</label>
                 <input
@@ -571,8 +575,8 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     name: rule.name || '',
     description: rule.description || '',
-    rule_type: rule.rule_type || 'KEYWORD',
-    region: rule.region || 'GLOBAL',
+    rule_type: rule.rule_type || 'keyword',
+    region: rule.region || 'global',
     patterns: Array.isArray(rule.patterns) ? rule.patterns.join(', ') : '',
     threshold: rule.threshold || 0.7,
     priority: rule.priority || 0,
@@ -583,10 +587,14 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
     e.preventDefault();
 
     // Convert patterns from comma-separated string to array
-    const patternsArray = formData.patterns
-      .split(',')
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
+    // For PII, TOXICITY, FINANCIAL, MEDICAL - patterns are not used (hardcoded in backend)
+    let patternsArray = null;
+    if (formData.rule_type === 'keyword' || formData.rule_type === 'regex') {
+      patternsArray = formData.patterns
+        .split(',')
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+    }
 
     const ruleData = {
       ...formData,
@@ -650,12 +658,12 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
                 onChange={handleChange}
                 required
               >
-                <option value="KEYWORD">Keyword</option>
-                <option value="REGEX">Regex Pattern</option>
-                <option value="PII">PII Detection</option>
-                <option value="TOXICITY">Toxicity (includes hate speech)</option>
-                <option value="FINANCIAL">Financial (hardcoded terms)</option>
-                <option value="MEDICAL">Medical/HIPAA (hardcoded terms)</option>
+                <option value="keyword">Keyword</option>
+                <option value="regex">Regex Pattern</option>
+                <option value="pii">PII Detection</option>
+                <option value="toxicity">Toxicity (includes hate speech)</option>
+                <option value="financial">Financial (hardcoded terms)</option>
+                <option value="medical">Medical/HIPAA (hardcoded terms)</option>
               </select>
             </div>
 
@@ -668,16 +676,16 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
                 onChange={handleChange}
                 required
               >
-                <option value="GLOBAL">Global</option>
-                <option value="US">US (HIPAA)</option>
-                <option value="EU">EU (GDPR)</option>
-                <option value="UK">UK</option>
-                <option value="APAC">APAC</option>
+                <option value="global">Global</option>
+                <option value="us">US (HIPAA)</option>
+                <option value="eu">EU (GDPR)</option>
+                <option value="uk">UK</option>
+                <option value="apac">APAC</option>
               </select>
             </div>
           </div>
 
-          {formData.rule_type === 'REGEX' && (
+          {formData.rule_type === 'regex' && (
             <div className="form-group">
               <label htmlFor="patterns">Regex Patterns (comma-separated)</label>
               <textarea
@@ -702,7 +710,7 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'KEYWORD' && (
+          {formData.rule_type === 'keyword' && (
             <div className="form-group">
               <label htmlFor="patterns">Keywords (comma-separated)</label>
               <input
@@ -719,7 +727,7 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'PII' && (
+          {formData.rule_type === 'pii' && (
             <div className="form-group">
               <div className="info-box">
                 <strong>PII Detection:</strong> Uses built-in patterns to detect:
@@ -734,7 +742,7 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'FINANCIAL' && (
+          {formData.rule_type === 'financial' && (
             <div className="form-group">
               <div className="info-box">
                 <strong>Financial Terms Detection:</strong> Uses built-in keywords to detect:
@@ -749,7 +757,7 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
             </div>
           )}
 
-          {formData.rule_type === 'MEDICAL' && (
+          {formData.rule_type === 'medical' && (
             <div className="form-group">
               <div className="info-box">
                 <strong>Medical/HIPAA Detection:</strong> Uses built-in keywords to detect:
@@ -773,7 +781,7 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
           )}
 
           <div className="form-row">
-            {formData.rule_type === 'TOXICITY' && (
+            {formData.rule_type === 'toxicity' && (
               <div className="form-group">
                 <label htmlFor="threshold">Threshold (0-1)</label>
                 <input
