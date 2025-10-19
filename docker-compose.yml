@@ -23,24 +23,20 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: moderation_backend
+    env_file:
+      - ./backend/.env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/moderation_db
-      SECRET_KEY: your-secret-key-change-in-production
       ML_MODEL_CACHE_DIR: /app/model_cache
-      LOG_LEVEL: INFO
-      # LLM Configuration (Optional - uncomment and set to use)
-      # LLM_PROVIDER: ${LLM_PROVIDER:-}
-      # LLM_API_KEY: ${LLM_API_KEY:-}
-      # LLM_MODEL: ${LLM_MODEL:-}
     ports:
       - "8000:8000"
+      - "5678:5678"  # debugpy port
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./backend:/app
       - model_cache:/app/model_cache
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: python -m debugpy --listen 0.0.0.0:5678 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build:

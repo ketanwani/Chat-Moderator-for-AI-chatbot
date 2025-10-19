@@ -10,7 +10,9 @@ class ChatbotService:
 
     def __init__(self):
         """Initialize chatbot with LLM provider"""
-        self.llm_provider = os.getenv("LLM_PROVIDER", "openai").lower()
+        print("init called")
+        self.llm_provider = os.getenv("LLM_PROVIDER", "anthropic").lower()
+        print(self.llm_provider)
         self.llm_api_key = os.getenv("LLM_API_KEY", "")
         self.llm_model = os.getenv("LLM_MODEL", "")
 
@@ -44,7 +46,7 @@ Be concise but informative. If you don't know something, admit it rather than ma
             if not self.llm_api_key:
                 logger.warning("OpenAI API key not provided. Using fallback mode.")
                 return
-
+            print("Calling llm")
             self.client = OpenAI(api_key=self.llm_api_key)
             self.llm_model = self.llm_model or "gpt-3.5-turbo"
             logger.info(f"OpenAI client initialized with model: {self.llm_model}")
@@ -146,7 +148,7 @@ Be concise but informative. If you don't know something, admit it rather than ma
             system=self.system_prompt,
             messages=messages,
         )
-
+        print(response.content[0].text)
         return response.content[0].text
 
     def _generate_ollama_response(self, message: str, conversation_history: Optional[list] = None) -> str:

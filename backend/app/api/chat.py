@@ -25,7 +25,7 @@ async def chat(
     3. Returns the moderated response
     """
     try:
-        # Generate chatbot response
+        # Generate chatbot response        
         bot_response = chatbot_service.generate_response(request.message)
 
         # Apply moderation

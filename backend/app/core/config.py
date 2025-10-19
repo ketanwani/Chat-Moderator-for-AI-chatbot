@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     # Performance thresholds
     MODERATION_LATENCY_THRESHOLD_MS: int = 100
 
+    # LLM Configuration
+    LLM_PROVIDER: str = "anthropic"
+    LLM_API_KEY: str = ""
+    LLM_MODEL: str = ""
+
     # API
     API_V1_PREFIX: str = "/api/v1"
     PROJECT_NAME: str = "Moderation and Compliance Engine"
