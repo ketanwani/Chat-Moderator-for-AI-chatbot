@@ -92,6 +92,17 @@ function AdminPanel() {
     }
   };
 
+  const updateRule = async (ruleId, ruleData) => {
+    try {
+      await axios.put(`${API_BASE_URL}/rules/${ruleId}`, ruleData);
+      setEditingRule(null);
+      fetchRules(); // Refresh the rules list
+    } catch (error) {
+      console.error('Error updating rule:', error);
+      alert('Failed to update rule: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   return (
     <div className="admin-panel">
       <div className="admin-tabs">
@@ -134,6 +145,12 @@ function AdminPanel() {
                     <div className="rule-header">
                       <h3>{rule.name}</h3>
                       <div className="rule-actions">
+                        <button
+                          className="edit-btn"
+                          onClick={() => setEditingRule(rule)}
+                        >
+                          Edit
+                        </button>
                         <button
                           className={`toggle-btn ${rule.is_active ? 'active' : 'inactive'}`}
                           onClick={() => toggleRuleStatus(rule.id, rule.is_active)}
@@ -266,6 +283,15 @@ function AdminPanel() {
         <CreateRuleModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={createRule}
+        />
+      )}
+
+      {/* Edit Rule Modal */}
+      {editingRule && (
+        <EditRuleModal
+          rule={editingRule}
+          onClose={() => setEditingRule(null)}
+          onSubmit={(ruleData) => updateRule(editingRule.id, ruleData)}
         />
       )}
     </div>
@@ -451,6 +477,193 @@ function CreateRuleModal({ onClose, onSubmit }) {
             </button>
             <button type="submit" className="btn-primary">
               Create Rule
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Edit Rule Modal Component
+function EditRuleModal({ rule, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    name: rule.name || '',
+    description: rule.description || '',
+    rule_type: rule.rule_type || 'KEYWORD',
+    region: rule.region || 'GLOBAL',
+    patterns: Array.isArray(rule.patterns) ? rule.patterns.join(', ') : '',
+    threshold: rule.threshold || 0.7,
+    priority: rule.priority || 0,
+    is_active: rule.is_active !== undefined ? rule.is_active : true
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Convert patterns from comma-separated string to array
+    const patternsArray = formData.patterns
+      .split(',')
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+
+    const ruleData = {
+      ...formData,
+      patterns: patternsArray,
+      threshold: parseFloat(formData.threshold),
+      priority: parseInt(formData.priority)
+    };
+
+    onSubmit(ruleData);
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Edit Moderation Rule</h2>
+          <button className="modal-close" onClick={onClose}>&times;</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="rule-form">
+          <div className="form-group">
+            <label htmlFor="name">Rule Name *</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="e.g., Detect Credit Card Numbers"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows="3"
+              placeholder="Describe what this rule does..."
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="rule_type">Rule Type *</label>
+              <select
+                id="rule_type"
+                name="rule_type"
+                value={formData.rule_type}
+                onChange={handleChange}
+                required
+              >
+                <option value="KEYWORD">Keyword</option>
+                <option value="REGEX">Regex Pattern</option>
+                <option value="PII">PII Detection</option>
+                <option value="TOXICITY">Toxicity</option>
+                <option value="HATE_SPEECH">Hate Speech</option>
+                <option value="FINANCIAL">Financial</option>
+                <option value="MEDICAL">Medical</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="region">Region *</label>
+              <select
+                id="region"
+                name="region"
+                value={formData.region}
+                onChange={handleChange}
+                required
+              >
+                <option value="GLOBAL">Global</option>
+                <option value="US">US (HIPAA)</option>
+                <option value="EU">EU (GDPR)</option>
+                <option value="UK">UK</option>
+                <option value="APAC">APAC</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="patterns">Patterns (comma-separated)</label>
+            <input
+              type="text"
+              id="patterns"
+              name="patterns"
+              value={formData.patterns}
+              onChange={handleChange}
+              placeholder="e.g., credit card, visa, mastercard"
+            />
+            <small className="form-hint">
+              For KEYWORD: comma-separated keywords. For REGEX: regex patterns
+            </small>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="threshold">Threshold (0-1)</label>
+              <input
+                type="number"
+                id="threshold"
+                name="threshold"
+                value={formData.threshold}
+                onChange={handleChange}
+                min="0"
+                max="1"
+                step="0.1"
+              />
+              <small className="form-hint">
+                Confidence threshold for flagging (default: 0.7)
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="priority">Priority</label>
+              <input
+                type="number"
+                id="priority"
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                min="0"
+              />
+              <small className="form-hint">
+                Higher priority rules are checked first
+              </small>
+            </div>
+          </div>
+
+          <div className="form-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                name="is_active"
+                checked={formData.is_active}
+                onChange={handleChange}
+              />
+              <span>Active (enable this rule)</span>
+            </label>
+          </div>
+
+          <div className="modal-actions">
+            <button type="button" className="btn-secondary" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary">
+              Update Rule
             </button>
           </div>
         </form>

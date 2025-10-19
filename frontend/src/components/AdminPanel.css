@@ -145,6 +145,22 @@
   color: white;
 }
 
+.edit-btn {
+  padding: 0.4rem 0.8rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+  background: #5568d3;
+}
+
 .delete-btn {
   padding: 0.4rem 0.8rem;
   background: #dc3545;
