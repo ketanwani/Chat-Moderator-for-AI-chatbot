@@ -385,10 +385,9 @@ function CreateRuleModal({ onClose, onSubmit }) {
                 <option value="KEYWORD">Keyword</option>
                 <option value="REGEX">Regex Pattern</option>
                 <option value="PII">PII Detection</option>
-                <option value="TOXICITY">Toxicity</option>
-                <option value="HATE_SPEECH">Hate Speech</option>
-                <option value="FINANCIAL">Financial</option>
-                <option value="MEDICAL">Medical</option>
+                <option value="TOXICITY">Toxicity (includes hate speech)</option>
+                <option value="FINANCIAL">Financial (hardcoded terms)</option>
+                <option value="MEDICAL">Medical/HIPAA (hardcoded terms)</option>
               </select>
             </div>
 
@@ -410,38 +409,120 @@ function CreateRuleModal({ onClose, onSubmit }) {
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="patterns">Patterns (comma-separated)</label>
-            <input
-              type="text"
-              id="patterns"
-              name="patterns"
-              value={formData.patterns}
-              onChange={handleChange}
-              placeholder="e.g., credit card, visa, mastercard"
-            />
-            <small className="form-hint">
-              For KEYWORD: comma-separated keywords. For REGEX: regex patterns
-            </small>
-          </div>
-
-          <div className="form-row">
+          {formData.rule_type === 'REGEX' && (
             <div className="form-group">
-              <label htmlFor="threshold">Threshold (0-1)</label>
-              <input
-                type="number"
-                id="threshold"
-                name="threshold"
-                value={formData.threshold}
+              <label htmlFor="patterns">Regex Patterns (comma-separated)</label>
+              <textarea
+                id="patterns"
+                name="patterns"
+                value={formData.patterns}
                 onChange={handleChange}
-                min="0"
-                max="1"
-                step="0.1"
+                rows="3"
+                placeholder="e.g., \b\d{3}-\d{2}-\d{4}\b, ^[A-Z]{2}\d{6}$"
+                style={{ fontFamily: 'monospace' }}
               />
               <small className="form-hint">
-                Confidence threshold for flagging (default: 0.7)
+                Enter regular expressions separated by commas. Each pattern will be tested against the text.
+                <br />
+                <a href="https://regex101.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'underline' }}>
+                  Learn regex at regex101.com
+                </a> |
+                <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'underline', marginLeft: '0.5rem' }}>
+                  MDN Regex Guide
+                </a>
               </small>
             </div>
+          )}
+
+          {formData.rule_type === 'KEYWORD' && (
+            <div className="form-group">
+              <label htmlFor="patterns">Keywords (comma-separated)</label>
+              <input
+                type="text"
+                id="patterns"
+                name="patterns"
+                value={formData.patterns}
+                onChange={handleChange}
+                placeholder="e.g., spam, promotional, advertisement"
+              />
+              <small className="form-hint">
+                Enter keywords or phrases separated by commas. Matching is case-insensitive.
+              </small>
+            </div>
+          )}
+
+          {formData.rule_type === 'PII' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>PII Detection:</strong> Uses built-in patterns to detect:
+                <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                  <li>Email addresses</li>
+                  <li>Phone numbers</li>
+                  <li>Social Security Numbers (SSN)</li>
+                  <li>Credit card numbers</li>
+                  <li>IP addresses</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {formData.rule_type === 'FINANCIAL' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>Financial Terms Detection:</strong> Uses built-in keywords to detect:
+                <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                  <li>Banking: account number, routing number, SWIFT, IBAN</li>
+                  <li>Cards: credit card, debit card, CVV, card brands</li>
+                  <li>Investment: stock tips, guaranteed returns, financial advice</li>
+                  <li>Crypto: wallet addresses, private keys, seed phrases</li>
+                  <li>Credentials: PIN numbers, security codes</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {formData.rule_type === 'MEDICAL' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>Medical/HIPAA Detection:</strong> Uses built-in keywords to detect:
+                <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                  <li>Medical advice: diagnose, prescribe, treatment</li>
+                  <li>Medications: prescription drugs (oxycodone, xanax, etc.)</li>
+                  <li>Conditions: diseases, mental health conditions</li>
+                  <li>Records: medical history, lab results, patient records</li>
+                  <li>Insurance: health insurance, medical billing, HIPAA</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {formData.rule_type === 'TOXICITY' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>Toxicity Detection:</strong> Uses ML model to detect toxic, obscene, threatening, insulting, and identity-based hate speech. Configure the confidence threshold below.
+              </div>
+            </div>
+          )}
+
+          <div className="form-row">
+            {formData.rule_type === 'TOXICITY' && (
+              <div className="form-group">
+                <label htmlFor="threshold">Threshold (0-1)</label>
+                <input
+                  type="number"
+                  id="threshold"
+                  name="threshold"
+                  value={formData.threshold}
+                  onChange={handleChange}
+                  min="0"
+                  max="1"
+                  step="0.1"
+                />
+                <small className="form-hint">
+                  ML confidence threshold for toxicity detection (default: 0.7)
+                </small>
+              </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="priority">Priority</label>
@@ -572,10 +653,9 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
                 <option value="KEYWORD">Keyword</option>
                 <option value="REGEX">Regex Pattern</option>
                 <option value="PII">PII Detection</option>
-                <option value="TOXICITY">Toxicity</option>
-                <option value="HATE_SPEECH">Hate Speech</option>
-                <option value="FINANCIAL">Financial</option>
-                <option value="MEDICAL">Medical</option>
+                <option value="TOXICITY">Toxicity (includes hate speech)</option>
+                <option value="FINANCIAL">Financial (hardcoded terms)</option>
+                <option value="MEDICAL">Medical/HIPAA (hardcoded terms)</option>
               </select>
             </div>
 
@@ -597,38 +677,120 @@ function EditRuleModal({ rule, onClose, onSubmit }) {
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="patterns">Patterns (comma-separated)</label>
-            <input
-              type="text"
-              id="patterns"
-              name="patterns"
-              value={formData.patterns}
-              onChange={handleChange}
-              placeholder="e.g., credit card, visa, mastercard"
-            />
-            <small className="form-hint">
-              For KEYWORD: comma-separated keywords. For REGEX: regex patterns
-            </small>
-          </div>
-
-          <div className="form-row">
+          {formData.rule_type === 'REGEX' && (
             <div className="form-group">
-              <label htmlFor="threshold">Threshold (0-1)</label>
-              <input
-                type="number"
-                id="threshold"
-                name="threshold"
-                value={formData.threshold}
+              <label htmlFor="patterns">Regex Patterns (comma-separated)</label>
+              <textarea
+                id="patterns"
+                name="patterns"
+                value={formData.patterns}
                 onChange={handleChange}
-                min="0"
-                max="1"
-                step="0.1"
+                rows="3"
+                placeholder="e.g., \b\d{3}-\d{2}-\d{4}\b, ^[A-Z]{2}\d{6}$"
+                style={{ fontFamily: 'monospace' }}
               />
               <small className="form-hint">
-                Confidence threshold for flagging (default: 0.7)
+                Enter regular expressions separated by commas. Each pattern will be tested against the text.
+                <br />
+                <a href="https://regex101.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'underline' }}>
+                  Learn regex at regex101.com
+                </a> |
+                <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'underline', marginLeft: '0.5rem' }}>
+                  MDN Regex Guide
+                </a>
               </small>
             </div>
+          )}
+
+          {formData.rule_type === 'KEYWORD' && (
+            <div className="form-group">
+              <label htmlFor="patterns">Keywords (comma-separated)</label>
+              <input
+                type="text"
+                id="patterns"
+                name="patterns"
+                value={formData.patterns}
+                onChange={handleChange}
+                placeholder="e.g., spam, promotional, advertisement"
+              />
+              <small className="form-hint">
+                Enter keywords or phrases separated by commas. Matching is case-insensitive.
+              </small>
+            </div>
+          )}
+
+          {formData.rule_type === 'PII' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>PII Detection:</strong> Uses built-in patterns to detect:
+                <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                  <li>Email addresses</li>
+                  <li>Phone numbers</li>
+                  <li>Social Security Numbers (SSN)</li>
+                  <li>Credit card numbers</li>
+                  <li>IP addresses</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {formData.rule_type === 'FINANCIAL' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>Financial Terms Detection:</strong> Uses built-in keywords to detect:
+                <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                  <li>Banking: account number, routing number, SWIFT, IBAN</li>
+                  <li>Cards: credit card, debit card, CVV, card brands</li>
+                  <li>Investment: stock tips, guaranteed returns, financial advice</li>
+                  <li>Crypto: wallet addresses, private keys, seed phrases</li>
+                  <li>Credentials: PIN numbers, security codes</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {formData.rule_type === 'MEDICAL' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>Medical/HIPAA Detection:</strong> Uses built-in keywords to detect:
+                <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                  <li>Medical advice: diagnose, prescribe, treatment</li>
+                  <li>Medications: prescription drugs (oxycodone, xanax, etc.)</li>
+                  <li>Conditions: diseases, mental health conditions</li>
+                  <li>Records: medical history, lab results, patient records</li>
+                  <li>Insurance: health insurance, medical billing, HIPAA</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {formData.rule_type === 'TOXICITY' && (
+            <div className="form-group">
+              <div className="info-box">
+                <strong>Toxicity Detection:</strong> Uses ML model to detect toxic, obscene, threatening, insulting, and identity-based hate speech. Configure the confidence threshold below.
+              </div>
+            </div>
+          )}
+
+          <div className="form-row">
+            {formData.rule_type === 'TOXICITY' && (
+              <div className="form-group">
+                <label htmlFor="threshold">Threshold (0-1)</label>
+                <input
+                  type="number"
+                  id="threshold"
+                  name="threshold"
+                  value={formData.threshold}
+                  onChange={handleChange}
+                  min="0"
+                  max="1"
+                  step="0.1"
+                />
+                <small className="form-hint">
+                  ML confidence threshold for toxicity detection (default: 0.7)
+                </small>
+              </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="priority">Priority</label>

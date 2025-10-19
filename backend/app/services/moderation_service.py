@@ -185,9 +185,8 @@ class ModerationService:
         }
 
     def _check_financial(self, rule: ModerationRule, text: str) -> Dict[str, Any]:
-        """Check for restricted financial terms"""
-        restricted_terms = rule.patterns or []
-        result = ml_detector.detect_financial_terms(text, restricted_terms)
+        """Check for restricted financial terms using hardcoded list"""
+        result = ml_detector.detect_financial_terms(text)
 
         flagged = result["has_restricted_terms"]
         return {
@@ -197,11 +196,10 @@ class ModerationService:
         }
 
     def _check_medical(self, rule: ModerationRule, text: str) -> Dict[str, Any]:
-        """Check for medical terms (HIPAA compliance)"""
-        restricted_terms = rule.patterns or []
-        result = ml_detector.detect_keywords(text, restricted_terms, is_regex=False)
+        """Check for medical terms using hardcoded list (HIPAA compliance)"""
+        result = ml_detector.detect_medical_terms(text)
 
-        flagged = result["found"]
+        flagged = result["has_medical_terms"]
         return {
             "flagged": flagged,
             "block": flagged,
@@ -218,7 +216,7 @@ class ModerationService:
 
         if "pii" in rule_types:
             return self.fallback_messages["pii"]
-        elif "toxicity" in rule_types or "hate_speech" in rule_types:
+        elif "toxicity" in rule_types:
             return self.fallback_messages["toxicity"]
         elif "financial" in rule_types:
             return self.fallback_messages["financial"]

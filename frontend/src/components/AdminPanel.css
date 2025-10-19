@@ -565,3 +565,28 @@
     width: 100%;
   }
 }
+
+/* Info Box for PII and Toxicity explanations */
+.info-box {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  padding: 1rem;
+  border-radius: 6px;
+  color: #1565c0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.info-box strong {
+  color: #0d47a1;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.info-box ul {
+  color: #1565c0;
+}
+
+.info-box ul li {
+  margin: 0.2rem 0;
+}

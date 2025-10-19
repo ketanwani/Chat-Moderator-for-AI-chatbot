@@ -8,7 +8,6 @@ class RuleType(str, enum.Enum):
     """Types of moderation rules"""
     PII = "pii"
     TOXICITY = "toxicity"
-    HATE_SPEECH = "hate_speech"
     KEYWORD = "keyword"
     REGEX = "regex"
     FINANCIAL = "financial"

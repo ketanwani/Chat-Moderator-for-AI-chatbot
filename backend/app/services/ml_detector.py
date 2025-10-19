@@ -89,26 +89,88 @@ class MLDetector:
             "matches": sum(detected.values()) if detected else 0
         }
 
-    def detect_financial_terms(self, text: str, restricted_terms: List[str]) -> Dict[str, Any]:
+    def detect_financial_terms(self, text: str) -> Dict[str, Any]:
         """
-        Detect restricted financial terms
+        Detect restricted financial terms using hardcoded list
 
         Args:
             text: Text to analyze
-            restricted_terms: List of restricted terms
 
         Returns:
             Dictionary with detection results
         """
+        # Hardcoded financial terms that should be flagged
+        default_financial_terms = [
+            # Banking
+            "bank account", "account number", "routing number", "swift code", "iban",
+            # Credit/Debit
+            "credit card", "debit card", "card number", "cvv", "expiry date",
+            "visa", "mastercard", "amex", "american express", "discover card",
+            # Investment advice (regulated)
+            "buy stock", "sell stock", "stock tip", "guaranteed return",
+            "investment opportunity", "can't lose", "double your money",
+            # Crypto
+            "bitcoin wallet", "crypto wallet", "private key", "seed phrase",
+            # Personal finance advice
+            "financial advice", "tax advice", "investment advice",
+            # Account credentials
+            "pin number", "security code", "account password"
+        ]
+
         text_lower = text.lower()
         found_terms = []
 
-        for term in restricted_terms:
+        for term in default_financial_terms:
             if term.lower() in text_lower:
                 found_terms.append(term)
 
         return {
             "has_restricted_terms": len(found_terms) > 0,
+            "found_terms": found_terms,
+            "count": len(found_terms)
+        }
+
+    def detect_medical_terms(self, text: str) -> Dict[str, Any]:
+        """
+        Detect medical/health terms using hardcoded list (HIPAA compliance)
+
+        Args:
+            text: Text to analyze
+
+        Returns:
+            Dictionary with detection results
+        """
+        # Hardcoded medical terms that should be flagged (HIPAA-sensitive)
+        default_medical_terms = [
+            # Medical advice
+            "medical advice", "diagnose", "diagnosis", "treat", "treatment",
+            "prescribe", "prescription", "medication", "medicine",
+            # Specific medications
+            "oxycodone", "hydrocodone", "xanax", "adderall", "vicodin",
+            "percocet", "morphine", "fentanyl", "codeine",
+            # Medical procedures
+            "surgery", "operation", "procedure", "therapy", "chemotherapy",
+            # Health conditions (examples)
+            "cancer", "diabetes", "heart disease", "hypertension", "depression",
+            "anxiety disorder", "schizophrenia", "bipolar", "hiv", "aids",
+            # Medical records
+            "medical record", "health record", "patient record", "medical history",
+            "lab results", "test results", "blood test", "x-ray", "mri", "ct scan",
+            # Healthcare providers
+            "doctor's note", "physician", "psychiatrist", "therapist",
+            # Insurance/billing
+            "health insurance", "insurance claim", "medical bill", "hipaa"
+        ]
+
+        text_lower = text.lower()
+        found_terms = []
+
+        for term in default_medical_terms:
+            if term.lower() in text_lower:
+                found_terms.append(term)
+
+        return {
+            "has_medical_terms": len(found_terms) > 0,
             "found_terms": found_terms,
             "count": len(found_terms)
         }
