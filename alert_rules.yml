@@ -1,0 +1,189 @@
+# Prometheus Alert Rules for Moderation Engine
+# These rules align with the success metrics
+
+groups:
+  - name: moderation_sla
+    interval: 30s
+    rules:
+      # CRITICAL: SLA Violation - Less than 99% of requests under 100ms
+      - alert: ModerationSLAViolation
+        expr: |
+          (
+            sum(moderation_requests_total{status="success"})
+            - sum(moderation_sla_violations_total{severity="critical"})
+          ) / sum(moderation_requests_total{status="success"}) < 0.99
+        for: 5m
+        labels:
+          severity: critical
+          metric: sla_compliance
+        annotations:
+          summary: "Moderation SLA below 99% threshold"
+          description: "Only {{ $value | humanizePercentage }} of requests meet <100ms SLA. Target is 99%."
+
+      # WARNING: Approaching SLA threshold
+      - alert: ModerationLatencyHigh
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(moderation_latency_seconds_bucket[5m])) by (le)
+          ) > 0.08
+        for: 10m
+        labels:
+          severity: warning
+          metric: latency
+        annotations:
+          summary: "P95 latency approaching SLA threshold"
+          description: "P95 latency is {{ $value }}s (80ms). SLA threshold is 100ms."
+
+      # CRITICAL: P99 latency exceeds 100ms
+      - alert: ModerationP99LatencyExceeded
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(moderation_latency_seconds_bucket[5m])) by (le)
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          metric: latency
+        annotations:
+          summary: "P99 latency exceeds 100ms SLA"
+          description: "P99 latency is {{ $value }}s. This violates the <100ms SLA target."
+
+  - name: moderation_interception
+    interval: 30s
+    rules:
+      # CRITICAL: Response bypassed moderation
+      - alert: ModerationInterceptionFailure
+        expr: |
+          sum(moderation_interception_total{intercepted="false"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+          metric: interception
+        annotations:
+          summary: "Responses bypassing moderation detected"
+          description: "{{ $value }} responses failed to be intercepted by moderation. This violates 100% interception requirement."
+
+      # WARNING: Moderation errors increasing
+      - alert: ModerationErrorRateHigh
+        expr: |
+          rate(moderation_requests_total{status="error"}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          metric: errors
+        annotations:
+          summary: "High moderation error rate detected"
+          description: "Moderation error rate is {{ $value | humanizePercentage }}. Check logs for details."
+
+  - name: moderation_quality
+    interval: 60s
+    rules:
+      # WARNING: False positive rate above 0.1%
+      - alert: HighFalsePositiveRate
+        expr: |
+          (
+            sum(moderation_false_positives_total)
+            / (sum(moderation_false_positives_total) + sum(moderation_true_positives_total))
+          ) > 0.001
+        for: 15m
+        labels:
+          severity: warning
+          metric: false_positive_rate
+        annotations:
+          summary: "False positive rate above 0.1% threshold"
+          description: "Current FPR: {{ $value | humanizePercentage }}. Target is <0.1%."
+
+      # INFO: No feedback data available
+      - alert: NoFeedbackData
+        expr: |
+          (sum(moderation_false_positives_total) + sum(moderation_true_positives_total)) == 0
+        for: 24h
+        labels:
+          severity: info
+          metric: feedback
+        annotations:
+          summary: "No moderation feedback data collected"
+          description: "Implement feedback collection to track false positive rates."
+
+  - name: system_health
+    interval: 30s
+    rules:
+      # WARNING: High database query latency
+      - alert: DatabaseQuerySlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(database_query_seconds_bucket[5m])) by (le, query_type)
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          metric: database
+        annotations:
+          summary: "Database queries are slow"
+          description: "P95 query time is {{ $value }}s for {{ $labels.query_type }}."
+
+      # WARNING: ML model inference slow
+      - alert: MLInferenceSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(ml_inference_time_bucket[5m])) by (le, model_type)
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          metric: ml_performance
+        annotations:
+          summary: "ML model inference is slow"
+          description: "P95 inference time for {{ $labels.model_type }} is {{ $value }}s."
+
+      # CRITICAL: Backend service down
+      - alert: BackendServiceDown
+        expr: up{job="moderation_backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          metric: availability
+        annotations:
+          summary: "Moderation backend service is down"
+          description: "The moderation backend is not responding to health checks."
+
+      # WARNING: High request rate
+      - alert: HighRequestRate
+        expr: |
+          rate(moderation_requests_total[5m]) > 100
+        for: 10m
+        labels:
+          severity: warning
+          metric: load
+        annotations:
+          summary: "High request rate detected"
+          description: "Request rate is {{ $value }} req/s. Monitor for performance degradation."
+
+  - name: chatbot_performance
+    interval: 30s
+    rules:
+      # WARNING: High chatbot error rate
+      - alert: ChatbotErrorRateHigh
+        expr: |
+          rate(chatbot_errors_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          metric: chatbot_errors
+        annotations:
+          summary: "High chatbot error rate"
+          description: "Chatbot error rate is {{ $value | humanizePercentage }} for provider {{ $labels.provider }}."
+
+      # WARNING: Chatbot response time high
+      - alert: ChatbotResponseSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(chatbot_response_seconds_bucket[5m])) by (le, provider)
+          ) > 5
+        for: 10m
+        labels:
+          severity: warning
+          metric: chatbot_latency
+        annotations:
+          summary: "Chatbot response time is high"
+          description: "P95 response time for {{ $labels.provider }} is {{ $value }}s."

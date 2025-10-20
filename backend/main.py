@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api import chat, admin
 from app.db.base import engine, Base
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import logging
 
 # Configure logging
@@ -59,6 +60,22 @@ async def root():
 async def health():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+
+@app.get("/metrics")
+async def metrics():
+    """
+    Prometheus metrics endpoint
+
+    Returns metrics in Prometheus exposition format for scraping.
+    Tracks:
+    - Moderation latency and SLA compliance
+    - Request counts and interception rates
+    - Rule performance and trigger counts
+    - False positive rates
+    - Database and ML model performance
+    """
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 if __name__ == "__main__":
