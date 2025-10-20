@@ -106,7 +106,7 @@ class ModerationService:
                 final_response = self._get_fallback_message(flagged_rules)
             else:
                 final_response = bot_response
-
+            
             # Create audit log
             self._create_audit_log(
                 db=db,

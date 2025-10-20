@@ -12,6 +12,7 @@ function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
+  const [expandedLogId, setExpandedLogId] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'rules') {
@@ -201,33 +202,107 @@ function AdminPanel() {
                       <th>Blocked</th>
                       <th>Latency</th>
                       <th>Details</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {logs.map(log => (
-                      <tr key={log.id}>
-                        <td>{new Date(log.timestamp).toLocaleString()}</td>
-                        <td className="request-id">{log.request_id.substring(0, 8)}...</td>
-                        <td>{log.region}</td>
-                        <td>
-                          <span className={`status-badge ${log.is_flagged ? 'flagged' : 'clean'}`}>
-                            {log.is_flagged ? 'Yes' : 'No'}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${log.is_blocked ? 'blocked' : 'allowed'}`}>
-                            {log.is_blocked ? 'Yes' : 'No'}
-                          </span>
-                        </td>
-                        <td>{log.moderation_latency_ms?.toFixed(2)}ms</td>
-                        <td>
-                          {log.flagged_rules && log.flagged_rules.length > 0 && (
-                            <span className="rules-count">
-                              {log.flagged_rules.length} rule(s)
+                      <>
+                        <tr key={log.id} className={expandedLogId === log.id ? 'expanded-row' : ''}>
+                          <td>{new Date(log.timestamp).toLocaleString()}</td>
+                          <td className="request-id">{log.request_id.substring(0, 8)}...</td>
+                          <td>{log.region}</td>
+                          <td>
+                            <span className={`status-badge ${log.is_flagged ? 'flagged' : 'clean'}`}>
+                              {log.is_flagged ? 'Yes' : 'No'}
                             </span>
-                          )}
-                        </td>
-                      </tr>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${log.is_blocked ? 'blocked' : 'allowed'}`}>
+                              {log.is_blocked ? 'Yes' : 'No'}
+                            </span>
+                          </td>
+                          <td>{log.moderation_latency_ms?.toFixed(2)}ms</td>
+                          <td>
+                            {log.flagged_rules && log.flagged_rules.length > 0 && (
+                              <span className="rules-count">
+                                {log.flagged_rules.length} rule(s)
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <button
+                              className="view-details-btn"
+                              onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
+                            >
+                              {expandedLogId === log.id ? 'Hide' : 'View'}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedLogId === log.id && (
+                          <tr key={`${log.id}-details`} className="log-details-row">
+                            <td colSpan="8">
+                              <div className="log-details-content">
+                                <div className="message-section">
+                                  <h4>User Message:</h4>
+                                  <div className="message-box user-message">
+                                    {log.user_message || <em>No user message recorded</em>}
+                                  </div>
+                                </div>
+
+                                <div className="message-section">
+                                  <h4>LLM Response (Original):</h4>
+                                  <div className="message-box bot-response">
+                                    {log.bot_response}
+                                  </div>
+                                </div>
+
+                                <div className="message-section">
+                                  <h4>Final Response (Sent to User):</h4>
+                                  <div className="message-box final-response">
+                                    {log.final_response || log.bot_response}
+                                    {log.is_blocked && (
+                                      <span className="modified-badge">Modified by moderation</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {log.flagged_rules && log.flagged_rules.length > 0 && (
+                                  <div className="message-section">
+                                    <h4>Flagged Rules:</h4>
+                                    <div className="flagged-rules-list">
+                                      {log.flagged_rules.map((rule, idx) => (
+                                        <div key={idx} className="flagged-rule-item">
+                                          <span className="rule-name">{rule.name || rule.rule_type}</span>
+                                          {rule.score && (
+                                            <span className="rule-score">Score: {(rule.score * 100).toFixed(1)}%</span>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {log.moderation_scores && (
+                                  <div className="message-section">
+                                    <h4>Moderation Scores:</h4>
+                                    <div className="moderation-scores">
+                                      {Object.entries(log.moderation_scores).map(([key, value]) => (
+                                        <div key={key} className="score-item">
+                                          <span className="score-label">{key}:</span>
+                                          <span className="score-value">
+                                            {typeof value === 'number' ? (value * 100).toFixed(1) + '%' : JSON.stringify(value)}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     ))}
                   </tbody>
                 </table>

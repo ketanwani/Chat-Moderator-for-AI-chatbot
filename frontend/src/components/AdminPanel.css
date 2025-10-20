@@ -282,6 +282,164 @@
   font-weight: 600;
 }
 
+.view-details-btn {
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-details-btn:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+}
+
+.logs-table tr.expanded-row {
+  background: #f0f4ff;
+}
+
+.log-details-row {
+  background: #f8fbff !important;
+}
+
+.log-details-row:hover {
+  background: #f8fbff !important;
+}
+
+.log-details-content {
+  padding: 1.5rem;
+  border-left: 4px solid #667eea;
+}
+
+.message-section {
+  margin-bottom: 1.5rem;
+}
+
+.message-section:last-child {
+  margin-bottom: 0;
+}
+
+.message-section h4 {
+  margin: 0 0 0.8rem 0;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.message-box {
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.message-box.user-message {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  color: #1565c0;
+}
+
+.message-box.bot-response {
+  background: #f3e5f5;
+  border-left: 4px solid #9c27b0;
+  color: #6a1b9a;
+}
+
+.message-box.final-response {
+  background: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  color: #2e7d32;
+}
+
+.message-box em {
+  color: #999;
+  font-style: italic;
+}
+
+.modified-badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: #ff9800;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.flagged-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.flagged-rule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 6px;
+}
+
+.rule-name {
+  font-weight: 600;
+  color: #856404;
+}
+
+.rule-score {
+  padding: 0.3rem 0.8rem;
+  background: #856404;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.moderation-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.score-label {
+  font-weight: 600;
+  color: #495057;
+  text-transform: capitalize;
+}
+
+.score-value {
+  padding: 0.3rem 0.8rem;
+  background: #667eea;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 /* Stats Section */
 .stats-grid {
   display: grid;
