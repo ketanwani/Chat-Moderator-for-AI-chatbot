@@ -15,6 +15,7 @@ function ChatInterface() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [region, setRegion] = useState('global');
+  const [llmProvider, setLlmProvider] = useState('mock');
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
 
@@ -50,7 +51,8 @@ function ChatInterface() {
       const response = await axios.post(`${API_BASE_URL}/chat`, {
         message: userMessage,
         region: region,
-        session_id: sessionId
+        session_id: sessionId,
+        llm_provider: llmProvider
       });
 
       const botMessage = {
@@ -90,19 +92,34 @@ function ChatInterface() {
           <h2>Chat Session</h2>
           <span className="session-id">Session: {sessionId.substring(0, 20)}...</span>
         </div>
-        <div className="region-selector">
-          <label htmlFor="region">Region:</label>
-          <select
-            id="region"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-          >
-            <option value="global">Global</option>
-            <option value="us">United States (HIPAA)</option>
-            <option value="eu">European Union (GDPR)</option>
-            <option value="uk">United Kingdom</option>
-            <option value="apac">Asia Pacific</option>
-          </select>
+        <div className="selectors-container">
+          <div className="region-selector">
+            <label htmlFor="region">Region:</label>
+            <select
+              id="region"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            >
+              <option value="global">Global</option>
+              <option value="us">United States (HIPAA)</option>
+              <option value="eu">European Union (GDPR)</option>
+              <option value="uk">United Kingdom</option>
+              <option value="apac">Asia Pacific</option>
+            </select>
+          </div>
+          <div className="llm-selector">
+            <label htmlFor="llm-provider">LLM Provider:</label>
+            <select
+              id="llm-provider"
+              value={llmProvider}
+              onChange={(e) => setLlmProvider(e.target.value)}
+            >
+              <option value="mock">Mock (Testing)</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic" disabled>Anthropic (Not Available)</option>
+              <option value="ollama" disabled>Ollama (Not Available)</option>
+            </select>
+          </div>
         </div>
       </div>
 

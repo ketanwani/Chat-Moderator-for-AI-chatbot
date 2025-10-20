@@ -32,25 +32,56 @@
   opacity: 0.9;
 }
 
-.region-selector {
+.selectors-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.region-selector,
+.llm-selector {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.region-selector label {
+.region-selector label,
+.llm-selector label {
   font-size: 0.9rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.region-selector select {
-  padding: 0.5rem;
+.region-selector select,
+.llm-selector select {
+  padding: 0.5rem 0.75rem;
   border: none;
   border-radius: 6px;
   background: white;
   color: #333;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.region-selector select:hover,
+.llm-selector select:hover {
+  background: #f0f0f0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.region-selector select:focus,
+.llm-selector select:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.llm-selector select option:disabled {
+  color: #999;
+  font-style: italic;
 }
 
 .messages-container {

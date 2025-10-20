@@ -53,6 +53,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="User message")
     region: Optional[Region] = Field(Region.GLOBAL, description="User's region")
     session_id: Optional[str] = Field(None, description="Session ID for tracking")
+    llm_provider: Optional[str] = Field("mock", description="LLM provider: openai, anthropic, ollama, or mock")
 
 
 class ChatResponse(BaseModel):

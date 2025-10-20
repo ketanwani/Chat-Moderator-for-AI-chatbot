@@ -34,11 +34,14 @@ async def chat(
         # Track chatbot response generation time
         chatbot_start = time.time()
 
-        # Generate chatbot response
-        bot_response = chatbot_service.generate_response(request.message)
+        # Generate chatbot response with optional provider override
+        bot_response = chatbot_service.generate_response(
+            message=request.message,
+            provider_override=request.llm_provider
+        )
 
-        # Track chatbot performance
-        chatbot_provider = chatbot_service.llm_provider
+        # Track chatbot performance (use the requested provider for metrics)
+        chatbot_provider = request.llm_provider or chatbot_service.llm_provider
         chatbot_response_time.labels(provider=chatbot_provider).observe(time.time() - chatbot_start)
 
         # CRITICAL: Apply moderation (must succeed or fail-safe)

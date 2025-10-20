@@ -88,33 +88,58 @@ Be concise but informative. If you don't know something, admit it rather than ma
         except Exception as e:
             logger.error(f"Error initializing Ollama: {e}")
 
-    def generate_response(self, message: str, conversation_history: Optional[list] = None) -> str:
+    def generate_response(
+        self,
+        message: str,
+        conversation_history: Optional[list] = None,
+        provider_override: Optional[str] = None
+    ) -> str:
         """
         Generate a response to user message using LLM
 
         Args:
             message: User's message
             conversation_history: Optional list of previous messages
+            provider_override: Override the configured provider for this request (openai, anthropic, ollama, mock)
 
         Returns:
             Bot response
         """
-        if not self.client:
-            return self._fallback_response(message)
+        # Use provider override if specified, otherwise use configured provider
+        provider = provider_override.lower() if provider_override else self.llm_provider
+
+        logger.info(f"Generating response with provider: {provider}")
 
         try:
-            if self.llm_provider == "openai":
-                return self._generate_openai_response(message, conversation_history)
-            elif self.llm_provider == "anthropic":
-                return self._generate_anthropic_response(message, conversation_history)
-            elif self.llm_provider == "ollama":
-                return self._generate_ollama_response(message, conversation_history)
-            elif self.llm_provider == "mock" or self.llm_provider == "test":
+            # Mock provider always works
+            if provider == "mock" or provider == "test":
                 return self._generate_mock_response(message)
+
+            # For real providers, check if client is initialized
+            elif provider == "openai":
+                if not self.client or self.llm_provider != "openai":
+                    logger.warning("OpenAI not initialized, falling back to mock")
+                    return self._fallback_response(message)
+                return self._generate_openai_response(message, conversation_history)
+
+            elif provider == "anthropic":
+                if not self.client or self.llm_provider != "anthropic":
+                    logger.warning("Anthropic not initialized, falling back to mock")
+                    return self._fallback_response(message)
+                return self._generate_anthropic_response(message, conversation_history)
+
+            elif provider == "ollama":
+                if not self.client or self.llm_provider != "ollama":
+                    logger.warning("Ollama not initialized, falling back to mock")
+                    return self._fallback_response(message)
+                return self._generate_ollama_response(message, conversation_history)
+
             else:
+                logger.warning(f"Unknown provider: {provider}, using fallback")
                 return self._fallback_response(message)
+
         except Exception as e:
-            logger.error(f"Error generating LLM response: {e}")
+            logger.error(f"Error generating LLM response with {provider}: {e}")
             return self._fallback_response(message)
 
     def _generate_openai_response(self, message: str, conversation_history: Optional[list] = None) -> str:
