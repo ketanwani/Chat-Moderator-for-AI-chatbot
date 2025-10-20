@@ -8,8 +8,6 @@ A backend service that moderates AI chatbot responses in real-time to enforce co
 
 *Complete system architecture showing the moderation engine with 100% response interception, ML-based detection, and comprehensive monitoring.*
 
-For detailed architecture documentation, see [ARCHITECTURE_DIAGRAM.md](ARCHITECTURE_DIAGRAM.md).
-
 ## Features
 
 - **Real-time moderation**: Intercepts all chatbot responses before delivery (100%)
@@ -167,3 +165,42 @@ SECRET_KEY=your-secret-key
 ML_MODEL_CACHE_DIR=./model_cache
 LLM_PROVIDER=mock  # Options: mock, openai, anthropic
 ```
+
+## Monitoring & Metrics
+
+The system includes comprehensive monitoring via Prometheus and Grafana:
+
+### Access Monitoring
+- **Grafana Dashboard**: http://localhost:3001 (default credentials: `admin/admin`)
+- **Prometheus**: http://localhost:9090
+- **Backend Metrics**: http://localhost:8000/metrics
+
+### Available Metrics
+- Request counts and rates
+- Moderation latency (P50, P95, P99)
+- Flagged/blocked response rates
+- False Positive Rate (FPR) tracking
+- Active rules and detection rates
+
+### False Positive Rate Testing
+
+Run the FPR test suite to validate moderation accuracy:
+
+**Windows:**
+```bash
+run_fpr_tests.bat
+```
+
+**Linux/Mac:**
+```bash
+./run_fpr_tests.sh
+```
+
+**With metrics update:**
+```bash
+run_fpr_tests.bat --update-metrics
+```
+
+Results are saved to `backend/test_results/` with detailed confusion matrix and performance metrics.
+
+For more details, see [backend/FPR_TESTING.md](backend/FPR_TESTING.md)

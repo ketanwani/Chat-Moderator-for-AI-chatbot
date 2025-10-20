@@ -15,8 +15,8 @@
 │  ┌─────────────────────┐              ┌────────────────────────┐    │
 │  │  Chat Interface     │              │   Admin Panel          │    │
 │  │  - Message Input    │              │   - Rule Management    │    │
-│  │  - Region Selector  │              │   - Audit Logs         │    │
-│  │  - Message Display  │              │   - Statistics         │    │
+│  │  - LLM Provider     │              │   - Audit Logs         │    │
+│  │  - Message Display  │              │   (Flagged Only)       │    │
 │  └─────────────────────┘              └────────────────────────┘    │
 └───────────────────────────┬─────────────────────────────────────────┘
                             │
@@ -152,12 +152,16 @@
                │
                ▼
      ┌─────────────────────────────────────┐
-     │  Create Audit Log                   │
+     │  Create Audit Log (Flagged Only)    │
+     │  NOTE: Only flagged responses are   │
+     │  logged as per requirements         │
      │  - request_id: uuid                 │
      │  - is_flagged: TRUE                 │
      │  - is_blocked: TRUE                 │
      │  - flagged_rules: [Financial]       │
      │  - latency_ms: 45                   │
+     │  - user_message: original message   │
+     │  - bot_response: original response  │
      │  - final_response: fallback message │
      └─────────┬───────────────────────────┘
                │
@@ -412,45 +416,47 @@ Text: "Send me your email and I'll guarantee you'll double your money!"
 └─────────────────┬───────────────────┘
                   │
                   ▼
-     ┌─────────────────────────────┐
-     │  Query audit_logs table:    │
-     │                             │
-     │  SELECT                     │
-     │    COUNT(*) as total,       │
-     │    SUM(is_flagged) as flag, │
-     │    SUM(is_blocked) as block,│
-     │    AVG(latency_ms) as avg   │
-     │  FROM audit_logs            │
-     └─────────────┬───────────────┘
+     ┌─────────────────────────────────┐
+     │  Query audit_logs table:        │
+     │  NOTE: Only flagged responses   │
+     │  are logged per requirements    │
+     │                                 │
+     │  SELECT                         │
+     │    COUNT(*) as total_flagged,   │
+     │    SUM(is_blocked) as blocked,  │
+     │    AVG(latency_ms) as avg       │
+     │  FROM audit_logs                │
+     └─────────────┬───────────────────┘
                    │
                    ▼
-     ┌─────────────────────────────┐
-     │  Results:                   │
-     │  total: 1250                │
-     │  flagged: 87                │
-     │  blocked: 43                │
-     │  avg_latency: 52.3ms        │
-     └─────────────┬───────────────┘
+     ┌─────────────────────────────────┐
+     │  Results:                       │
+     │  total_flagged: 87 (all logs)   │
+     │  blocked: 43                    │
+     │  avg_latency: 52.3ms            │
+     └─────────────┬───────────────────┘
                    │
                    ▼
-     ┌─────────────────────────────┐
-     │  Calculate Rates:           │
-     │  flag_rate: 6.96%           │
-     │  block_rate: 3.44%          │
-     └─────────────┬───────────────┘
+     ┌─────────────────────────────────┐
+     │  Calculate Rates:               │
+     │  block_rate: 49.4% (of flagged) │
+     │                                 │
+     │  NOTE: For total request count, │
+     │  use Prometheus /metrics        │
+     └─────────────┬───────────────────┘
                    │
                    ▼
-     ┌─────────────────────────────┐
-     │  Return JSON:               │
-     │  {                          │
-     │    total_requests: 1250,    │
-     │    flagged_requests: 87,    │
-     │    blocked_requests: 43,    │
-     │    flag_rate: 6.96,         │
-     │    block_rate: 3.44,        │
-     │    avg_latency_ms: 52.3     │
-     │  }                          │
-     └─────────────────────────────┘
+     ┌─────────────────────────────────┐
+     │  Return JSON:                   │
+     │  {                              │
+     │    total_flagged_requests: 87,  │
+     │    flagged_requests: 87,        │
+     │    blocked_requests: 43,        │
+     │    block_rate_of_flagged: 49.4, │
+     │    avg_latency_ms: 52.3,        │
+     │    note: "Audit logs only..."   │
+     │  }                              │
+     └─────────────────────────────────┘
 ```
 
 ## 8. Success Metrics Tracking
@@ -459,7 +465,8 @@ Text: "Send me your email and I'll guarantee you'll double your money!"
 ┌────────────────────────────────────────────────────┐
 │  Metric 1: 100% Interception                      │
 │  ✓ Every response goes through moderation_service  │
-│  ✓ Verified by: All requests in audit_logs        │
+│  ✓ Verified by: Prometheus metrics (/metrics)     │
+│  ✓ Note: Only flagged responses in audit_logs     │
 └────────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────┐
