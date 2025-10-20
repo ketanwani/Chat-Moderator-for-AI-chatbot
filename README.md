@@ -2,14 +2,23 @@
 
 A backend service that moderates AI chatbot responses in real-time to enforce content compliance rules.
 
+## Architecture
+
+![System Architecture](assets/images/architecture.png)
+
+*Complete system architecture showing the moderation engine with 100% response interception, ML-based detection, and comprehensive monitoring.*
+
+For detailed architecture documentation, see [ARCHITECTURE_DIAGRAM.md](ARCHITECTURE_DIAGRAM.md).
+
 ## Features
 
-- **Real-time moderation**: Intercepts all chatbot responses before delivery
+- **Real-time moderation**: Intercepts all chatbot responses before delivery (100%)
 - **ML-based detection**: Integrates toxicity and PII detection models
 - **Region-specific rules**: GDPR, HIPAA, and custom compliance rules
 - **Dynamic configuration**: Update rules without redeployment
-- **Audit logging**: Complete audit trail for compliance
-- **High performance**: <100ms moderation latency
+- **Audit logging**: Complete audit trail for compliance (flagged responses only)
+- **Dynamic LLM selection**: Choose between Mock, OpenAI, Anthropic providers
+- **Monitoring**: Prometheus + Grafana dashboards with real-time metrics
 
 ## Tech Stack
 

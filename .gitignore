@@ -66,3 +66,12 @@ logs/
 *.bin
 *.h5
 *.pkl
+
+# Testing and Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.pytest_cache/
+*.cover
+.hypothesis/
