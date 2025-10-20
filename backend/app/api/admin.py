@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from pydantic import BaseModel
 from app.db.base import get_db
 from app.models.moderation_rule import ModerationRule, RuleType, Region
 from app.models.audit_log import AuditLog
@@ -10,11 +11,18 @@ from app.schemas.moderation import (
     ModerationRuleResponse,
     AuditLogResponse
 )
+from app.core.metrics import moderation_false_positives, moderation_true_positives
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+# Schema for FPR metric updates
+class FPRMetricUpdate(BaseModel):
+    rule_type: str = "fpr_test"
+    region: str = "global"
 
 
 @router.get("/rules", response_model=List[ModerationRuleResponse])
@@ -199,3 +207,31 @@ async def get_stats(
     except Exception as e:
         logger.error(f"Error fetching stats: {e}")
         raise HTTPException(status_code=500, detail="Error fetching statistics")
+
+
+@router.post("/metrics/fpr/false-positive", status_code=200)
+async def increment_false_positive(data: FPRMetricUpdate):
+    """Increment false positive counter for FPR testing"""
+    try:
+        moderation_false_positives.labels(
+            rule_type=data.rule_type,
+            region=data.region
+        ).inc()
+        return {"status": "success", "metric": "false_positive", "incremented": True}
+    except Exception as e:
+        logger.error(f"Error incrementing false positive: {e}")
+        raise HTTPException(status_code=500, detail="Error updating metric")
+
+
+@router.post("/metrics/fpr/true-positive", status_code=200)
+async def increment_true_positive(data: FPRMetricUpdate):
+    """Increment true positive counter for FPR testing"""
+    try:
+        moderation_true_positives.labels(
+            rule_type=data.rule_type,
+            region=data.region
+        ).inc()
+        return {"status": "success", "metric": "true_positive", "incremented": True}
+    except Exception as e:
+        logger.error(f"Error incrementing true positive: {e}")
+        raise HTTPException(status_code=500, detail="Error updating metric")

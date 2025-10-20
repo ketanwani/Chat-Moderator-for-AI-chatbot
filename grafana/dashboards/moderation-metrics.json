@@ -123,7 +123,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum(moderation_false_positives_total) / (sum(moderation_false_positives_total) + sum(moderation_true_positives_total))",
+          "expr": "(sum(moderation_false_positives_total) or vector(0)) / ((sum(moderation_false_positives_total) or vector(0)) + (sum(moderation_true_positives_total) or vector(0)) + 1)",
           "refId": "A"
         }
       ],

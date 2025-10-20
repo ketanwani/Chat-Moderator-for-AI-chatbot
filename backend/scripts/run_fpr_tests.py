@@ -306,7 +306,7 @@ class FPRTester:
 
             # Call internal metrics update endpoint
             # We'll increment the counters to reflect test results
-            backend_url = "http://localhost:8000"
+            backend_url = "http://localhost:8000/api/v1"
 
             # Update false positives counter
             for _ in range(fp_count):
