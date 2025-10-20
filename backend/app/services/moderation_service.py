@@ -106,22 +106,27 @@ class ModerationService:
                 final_response = self._get_fallback_message(flagged_rules)
             else:
                 final_response = bot_response
-            
-            # Create audit log
-            self._create_audit_log(
-                db=db,
-                request_id=request_id,
-                user_message=user_message,
-                bot_response=bot_response,
-                is_flagged=len(flagged_rules) > 0,
-                is_blocked=is_blocked,
-                flagged_rules=flagged_rules,
-                scores=all_scores,
-                latency_ms=latency_ms,
-                region=region.value,
-                final_response=final_response,
-                session_id=session_id
-            )
+
+            # Create audit log only for flagged responses (as per requirements)
+            # Requirement: "Log all flagged responses with metadata for audit and reporting purposes"
+            if len(flagged_rules) > 0:
+                self._create_audit_log(
+                    db=db,
+                    request_id=request_id,
+                    user_message=user_message,
+                    bot_response=bot_response,
+                    is_flagged=True,  # Always true since we only log flagged
+                    is_blocked=is_blocked,
+                    flagged_rules=flagged_rules,
+                    scores=all_scores,
+                    latency_ms=latency_ms,
+                    region=region.value,
+                    final_response=final_response,
+                    session_id=session_id
+                )
+                logger.info(f"Flagged response logged to audit: request_id={request_id}")
+            else:
+                logger.debug(f"Clean response (not logged to audit): request_id={request_id}")
 
             return ModerationResult(
                 is_flagged=len(flagged_rules) > 0,

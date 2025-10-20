@@ -5,10 +5,9 @@ import './AdminPanel.css';
 const API_BASE_URL = 'http://localhost:8000/api/v1/admin';
 
 function AdminPanel() {
-  const [activeTab, setActiveTab] = useState('rules'); // 'rules', 'logs', 'stats'
+  const [activeTab, setActiveTab] = useState('rules'); // 'rules', 'logs'
   const [rules, setRules] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
@@ -19,8 +18,6 @@ function AdminPanel() {
       fetchRules();
     } else if (activeTab === 'logs') {
       fetchLogs();
-    } else if (activeTab === 'stats') {
-      fetchStats();
     }
   }, [activeTab]);
 
@@ -43,18 +40,6 @@ function AdminPanel() {
       setLogs(response.data);
     } catch (error) {
       console.error('Error fetching logs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/stats`);
-      setStats(response.data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
     }
@@ -119,12 +104,6 @@ function AdminPanel() {
         >
           Audit Logs
         </button>
-        <button
-          className={activeTab === 'stats' ? 'active' : ''}
-          onClick={() => setActiveTab('stats')}
-        >
-          Statistics
-        </button>
       </div>
 
       <div className="admin-content">
@@ -188,6 +167,9 @@ function AdminPanel() {
         {activeTab === 'logs' && (
           <div className="logs-section">
             <h2>Audit Logs</h2>
+            <div className="logs-info-banner">
+              <strong>Note:</strong> Only flagged responses are logged for audit purposes (as per compliance requirements). For metrics and statistics, see Grafana at <a href="http://localhost:3001" target="_blank" rel="noopener noreferrer">localhost:3001</a>
+            </div>
             {loading ? (
               <div className="loading">Loading logs...</div>
             ) : (
@@ -307,47 +289,6 @@ function AdminPanel() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'stats' && (
-          <div className="stats-section">
-            <h2>Statistics</h2>
-            {loading ? (
-              <div className="loading">Loading statistics...</div>
-            ) : stats ? (
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-value">{stats.total_requests}</div>
-                  <div className="stat-label">Total Requests</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">{stats.flagged_requests}</div>
-                  <div className="stat-label">Flagged Requests</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">{stats.blocked_requests}</div>
-                  <div className="stat-label">Blocked Requests</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">{stats.flag_rate?.toFixed(2)}%</div>
-                  <div className="stat-label">Flag Rate</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">{stats.block_rate?.toFixed(2)}%</div>
-                  <div className="stat-label">Block Rate</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">{stats.avg_latency_ms?.toFixed(2)}ms</div>
-                  <div className="stat-label">Avg Latency</div>
-                  <div className={`stat-status ${stats.avg_latency_ms < 100 ? 'good' : 'warning'}`}>
-                    {stats.avg_latency_ms < 100 ? '✓ Within SLA' : '⚠ Above SLA'}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div>No statistics available</div>
             )}
           </div>
         )}

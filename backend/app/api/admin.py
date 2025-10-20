@@ -172,24 +172,28 @@ async def get_audit_log(
 async def get_stats(
     db: Session = Depends(get_db)
 ):
-    """Get moderation statistics"""
+    """Get moderation statistics
+
+    Note: Audit logs only contain flagged responses (as per requirements).
+    For total request counts, use Prometheus metrics at /metrics endpoint.
+    """
     try:
-        total_requests = db.query(AuditLog).count()
-        flagged_requests = db.query(AuditLog).filter(AuditLog.is_flagged == True).count()
+        # Since audit logs only contain flagged responses now
+        flagged_requests = db.query(AuditLog).count()  # All audit logs are flagged
         blocked_requests = db.query(AuditLog).filter(AuditLog.is_blocked == True).count()
 
-        # Average latency
+        # Average latency (for flagged requests only)
         avg_latency = db.query(AuditLog).with_entities(
             db.func.avg(AuditLog.moderation_latency_ms)
         ).scalar()
 
         return {
-            "total_requests": total_requests,
-            "flagged_requests": flagged_requests,
+            "total_flagged_requests": flagged_requests,  # Renamed for clarity
+            "flagged_requests": flagged_requests,  # Kept for backward compatibility
             "blocked_requests": blocked_requests,
-            "flag_rate": (flagged_requests / total_requests * 100) if total_requests > 0 else 0,
-            "block_rate": (blocked_requests / total_requests * 100) if total_requests > 0 else 0,
-            "avg_latency_ms": round(avg_latency, 2) if avg_latency else 0
+            "block_rate_of_flagged": (blocked_requests / flagged_requests * 100) if flagged_requests > 0 else 0,
+            "avg_latency_ms": round(avg_latency, 2) if avg_latency else 0,
+            "note": "Audit logs only contain flagged responses. Use /metrics for total request counts."
         }
 
     except Exception as e:
