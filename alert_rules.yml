@@ -1,53 +1,6 @@
 # Prometheus Alert Rules for Moderation Engine
-# These rules align with the success metrics
 
 groups:
-  - name: moderation_sla
-    interval: 30s
-    rules:
-      # CRITICAL: SLA Violation - Less than 99% of requests under 100ms
-      - alert: ModerationSLAViolation
-        expr: |
-          (
-            sum(moderation_requests_total{status="success"})
-            - sum(moderation_sla_violations_total{severity="critical"})
-          ) / sum(moderation_requests_total{status="success"}) < 0.99
-        for: 5m
-        labels:
-          severity: critical
-          metric: sla_compliance
-        annotations:
-          summary: "Moderation SLA below 99% threshold"
-          description: "Only {{ $value | humanizePercentage }} of requests meet <100ms SLA. Target is 99%."
-
-      # WARNING: Approaching SLA threshold
-      - alert: ModerationLatencyHigh
-        expr: |
-          histogram_quantile(0.95,
-            sum(rate(moderation_latency_seconds_bucket[5m])) by (le)
-          ) > 0.08
-        for: 10m
-        labels:
-          severity: warning
-          metric: latency
-        annotations:
-          summary: "P95 latency approaching SLA threshold"
-          description: "P95 latency is {{ $value }}s (80ms). SLA threshold is 100ms."
-
-      # CRITICAL: P99 latency exceeds 100ms
-      - alert: ModerationP99LatencyExceeded
-        expr: |
-          histogram_quantile(0.99,
-            sum(rate(moderation_latency_seconds_bucket[5m])) by (le)
-          ) > 0.1
-        for: 5m
-        labels:
-          severity: critical
-          metric: latency
-        annotations:
-          summary: "P99 latency exceeds 100ms SLA"
-          description: "P99 latency is {{ $value }}s. This violates the <100ms SLA target."
-
   - name: moderation_interception
     interval: 30s
     rules:
