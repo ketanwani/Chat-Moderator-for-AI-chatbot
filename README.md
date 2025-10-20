@@ -24,6 +24,12 @@ A backend service that moderates AI chatbot responses in real-time to enforce co
 - **Frontend**: React.js
 - **ML Models**: HuggingFace Transformers (Detoxify, SpaCy)
 
+## Data Model
+
+![Data Model](assets/images/data%20model.png)
+
+*Database schema showing moderation_rules and audit_logs tables with their relationships and key fields.*
+
 ## Project Structure
 
 ```
